@@ -1,23 +1,25 @@
 import 'dart:async';
-import 'dart:developer';
-
+import 'dart:math';
 import 'package:distance_app/Model/location_model.dart';
 import 'package:distance_app/utils/local_db.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:location/location.dart';
 
 class LocationDataController extends GetxController {
   RxBool isLoading = false.obs;
   DatabaseHelper databaseHelper = DatabaseHelper();
-  StreamSubscription<Position>? locationStream;
   RxList<Map<String, dynamic>> parsedData = <Map<String, dynamic>>[].obs;
+  RxString totalTravalTime = "".obs;
+  RxDouble totalDistance = 0.0.obs;
+  DateTime currentdateTime = DateTime.now();
   final timeStampController = TextEditingController().obs;
   final latitudeController = TextEditingController().obs;
   final longitudeController = TextEditingController().obs;
   final accuracyController = TextEditingController().obs;
   final distanceController = TextEditingController().obs;
   final searchController = TextEditingController().obs;
+  StreamSubscription<LocationData>? locationSubscription;
 
   /// insert data in table
   Future<void> inserData() async {
@@ -38,84 +40,102 @@ class LocationDataController extends GetxController {
     isLoading(true);
     parsedData.value =
         await databaseHelper.getData(searchController.value.text) ?? [];
-    log("lidatData--> ${parsedData.toString()}");
+    print("lidatData--> ${parsedData.toString()}");
     isLoading(false);
   }
 
-  void startTracking() async {
-    try {
-      requestLocationPermission();
-      Position previousPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      log("PrevPosition-- >${previousPosition.latitude.toString()}");
-      StreamSubscription<Position> locationStream =
-          Geolocator.getPositionStream().listen(
-        (Position position) {
-          // Calculate distance from previous location
-          log("position--> ${position.latitude}, ${position.longitude}");
-          Timer.periodic(const Duration(seconds: 30), (timer) async {
-            Position currentPosition = await Geolocator.getCurrentPosition(
-              desiredAccuracy: LocationAccuracy.high,
-            );
-            log("PrevPosition-- >${previousPosition.latitude.toString()}");
-            log("CurrentPosition-- >${currentPosition.latitude.toString()}");
-
-            // Calculate distance from previous location
-            double distanceInMeters = Geolocator.distanceBetween(
-              previousPosition.latitude,
-              previousPosition.longitude,
-              currentPosition.latitude,
-              currentPosition.longitude,
-            );
-            log("distance--> $distanceInMeters");
-            // Check if distance is greater than or equal to 3 meters
-            // if (distanceInMeters >= 3) {
-            // Save location data to database
-
-            var data = LocationModel(
-              latitude: currentPosition.latitude.toString(),
-              longitude: currentPosition.longitude.toString(),
-              timestamp: DateTime.now().toIso8601String(),
-              accuracy: currentPosition.accuracy.toString(),
-              distance: distanceInMeters.toString(),
-            );
-            await databaseHelper.insertIntoTable(data);
-            Get.snackbar("Success", "Data inserted",
-                backgroundColor: Colors.green, colorText: Colors.white);
-            // }
-
-            // Update previous position
-            previousPosition = currentPosition;
-          });
-        },
-      );
-    } catch (e) {
-      print("data--> $e");
-    }
-  }
-
-  /// stope tracking
-  void stopTracking() {
-    print("stop ");
-    locationStream?.cancel(); // Stop location tracking
-  }
-
-  void requestLocationPermission() async {
-    print("dsjhasdjkfh");
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      // Permissions are denied or denied forever, let's request it!
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        print("Location permissions are still denied");
-      } else if (permission == LocationPermission.deniedForever) {
-        print("Location permissions are permanently denied");
-      } else {
-        // Permissions are granted (either can be whileInUse, always, restricted).
-        print("Location permissions are granted after requesting");
+  Future<void> trackingLocation() async {
+    Location location = Location();
+    currentdateTime = DateTime.now();
+    bool serviceEnabled;
+    PermissionStatus permissionGranted;
+    LocationData startLocation;
+    serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        return;
       }
     }
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+    startLocation = await location.getLocation();
+
+    location.onLocationChanged.listen((LocationData currentLocation) async {
+      print(
+        currentLocation.altitude,
+      );
+
+      print(currentLocation.longitude);
+      print("PrevPosition-- >${currentLocation.latitude.toString()}");
+      print("CurrentPosition-- >${currentLocation.latitude.toString()}");
+
+      // Calculate distance from previous location
+      // double distanceInMeters = calculateDistance(
+      //   startLocation.latitude!,
+      //   startLocation.longitude!,
+      //   currentLocation.latitude!,
+      //   currentLocation.longitude!,
+      // );
+
+      double distanceInMeters = calculateDistance(
+        startLocation.latitude!,
+        startLocation.longitude!,
+        34.0522,
+        -118.2437,
+      );
+      totalDistance.value = distanceInMeters;
+      print("distance--> $distanceInMeters");
+      // Check if distance is greater than or equal to 3 meters
+      if (distanceInMeters >= 3) {
+        // Save location data to database
+
+        var data = LocationModel(
+          latitude: currentLocation.latitude.toString(),
+          longitude: currentLocation.longitude.toString(),
+          timestamp: currentLocation.time.toString(),
+          accuracy: currentLocation.accuracy.toString(),
+          distance: distanceInMeters.toString(),
+        );
+        await databaseHelper.insertIntoTable(data);
+        Get.snackbar("Success", "Data inserted",
+            backgroundColor: Colors.green, colorText: Colors.white);
+      }
+      // Use current location
+      update();
+    });
+  }
+
+  void stopTracking() {
+    locationSubscription?.cancel(); // Stop location tracking
+  }
+
+  double calculateDistance(double startLatitude, double startLongitude,
+      double currentLatitude, double currentLongitude) {
+    // Use the Haversine formula to calculate distance between two coordinates
+    const double earthRadius = 6371000; // in meters
+
+    double dLat = degreesToRadians(currentLatitude - startLatitude);
+    double dLon = degreesToRadians(currentLongitude - startLongitude);
+
+    double a = pow(sin(dLat / 2), 2) +
+        cos(degreesToRadians(startLatitude)) *
+            cos(degreesToRadians(currentLatitude)) *
+            pow(sin(dLon / 2), 2);
+
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    double distance = earthRadius * c;
+
+    return distance;
+  }
+
+  double degreesToRadians(double degrees) {
+    return degrees * pi / 180;
   }
 }

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
-   CustomTextField({super.key, required this.controller, this.labelText,this.onChanged, this.suffixIcon});
+  CustomTextField(
+      {super.key,
+      required this.controller,
+      this.labelText,
+      this.onChanged,
+      this.suffixIcon});
 
   final TextEditingController controller;
   final String? labelText;
@@ -14,12 +19,13 @@ class CustomTextField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
       child: TextFormField(
         controller: controller,
-        onChanged:onChanged ,
+        onChanged: onChanged,
         decoration: InputDecoration(
-          suffixIcon:suffixIcon ,
-            contentPadding: EdgeInsets.zero,
+            suffixIcon: suffixIcon,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             border: const OutlineInputBorder(),
-            labelText: labelText),
+            hintText: labelText),
       ),
     );
   }

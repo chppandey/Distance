@@ -1,7 +1,7 @@
 import 'package:distance_app/Controller/location_controller.dart';
-import 'package:distance_app/Presentation/table2.dart';
+import 'package:distance_app/Presentation/data_table.dart';
 import 'package:flutter/material.dart';
-import 'package:get/instance_manager.dart';
+import 'package:get/get.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,15 +19,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: SingleChildScrollView(
         child: Column(
           // spacing: 10,
-          // crossAxisAlignment: WrapCrossAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             ElevatedButton(
               onPressed: () {
-                locationDataController.startTracking();
-                // locationDataController.startTracking();
+                locationDataController.trackingLocation();
               },
               child: const Text('Start Tracking'),
             ),
@@ -43,47 +41,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const MyHomePage()));
+                        builder: (context) => const MyDataTable()));
               },
               child: const Text('Show Tracked Locations'),
             ),
-
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 30),
-              child: Divider(
-                height: 2,
-                color: Colors.black,
-              ),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+              decoration: const BoxDecoration(color: Colors.amberAccent),
+              child: Obx(() => Text(
+                    "Total Distance  :  ${locationDataController.totalDistance.value}",
+                    style: const TextStyle(fontSize: 18, color: Colors.red),
+                  )),
             ),
-//             // Display total travelled distance and tracking time
-//             CustomTextField(
-//                 controller: locationDataController.timeStampController.value,
-//                 labelText: "Time"),
-//             CustomTextField(
-//                 controller: locationDataController.latitudeController.value,
-//                 labelText: "Latitude"),
-//             CustomTextField(
-//                 controller: locationDataController.longitudeController.value,
-//                 labelText: "Longitude"),
-//             CustomTextField(
-//                 controller: locationDataController.accuracyController.value,
-//                 labelText: "Accuracy"),
-//             CustomTextField(
-//                 controller: locationDataController.distanceController.value,
-//                 labelText: "Distance"),
-//
-//             ElevatedButton(
-//               onPressed: () async {
-//                 locationDataController.inserData();
-//               },
-//               child: const Text('Insert into Table'),
-//             ),
-//             ElevatedButton(
-//               onPressed: () async {
-//                 locationDataController.getData();
-//               },
-//               child: const Text('Get from Table'),
-//             ),
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+              decoration: const BoxDecoration(color: Colors.amberAccent),
+              child: Obx(() => Text(
+                    "Total Travel Time  :  ${locationDataController.totalTravalTime.value}",
+                    style: const TextStyle(fontSize: 18, color: Colors.red),
+                  )),
+            )
           ],
         ),
       ),
