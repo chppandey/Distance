@@ -44,22 +44,11 @@ class LocationDataController extends GetxController {
 
   void startTracking() async {
     try {
+      requestLocationPermission();
       Position previousPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
       log("PrevPosition-- >${previousPosition.latitude.toString()}");
-      LocationPermission permission;
-      permission = await Geolocator.checkPermission();
-      Get.snackbar("Success", "Tracking started",
-          backgroundColor: Colors.green, colorText: Colors.white);
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.deniedForever) {
-          Get.snackbar("Error!", 'Location Not Available',
-              backgroundColor: Colors.red, colorText: Colors.white);
-          return Future.error('Location Not Available');
-        }
-      }
       StreamSubscription<Position> locationStream =
           Geolocator.getPositionStream().listen(
         (Position position) {
@@ -108,6 +97,25 @@ class LocationDataController extends GetxController {
 
   /// stope tracking
   void stopTracking() {
+    print("stop ");
     locationStream?.cancel(); // Stop location tracking
+  }
+
+  void requestLocationPermission() async {
+    print("dsjhasdjkfh");
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      // Permissions are denied or denied forever, let's request it!
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        print("Location permissions are still denied");
+      } else if (permission == LocationPermission.deniedForever) {
+        print("Location permissions are permanently denied");
+      } else {
+        // Permissions are granted (either can be whileInUse, always, restricted).
+        print("Location permissions are granted after requesting");
+      }
+    }
   }
 }

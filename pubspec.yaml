@@ -41,6 +41,7 @@ dependencies:
   path: 
   get: ^4.6.6
   geolocator: ^11.0.0
+  syncfusion_flutter_datagrid: ^25.1.42
 
 dev_dependencies:
   flutter_test:

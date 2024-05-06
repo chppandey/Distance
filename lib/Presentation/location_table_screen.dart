@@ -46,6 +46,8 @@ class _MyDataTableState extends State<MyDataTable> {
                   : SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: DataTable(
+                        sortAscending: false,
+                        sortColumnIndex: 0,
                         decoration: BoxDecoration(
                           color: Colors.blueGrey[50],
                           borderRadius: BorderRadius.circular(10.0),

@@ -1,5 +1,5 @@
 import 'package:distance_app/Controller/location_controller.dart';
-import 'package:distance_app/Presentation/location_table_screen.dart';
+import 'package:distance_app/Presentation/table2.dart';
 import 'package:flutter/material.dart';
 import 'package:get/instance_manager.dart';
 
@@ -43,7 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const MyDataTable()));
+                        builder: (context) => const MyHomePage()));
               },
               child: const Text('Show Tracked Locations'),
             ),
