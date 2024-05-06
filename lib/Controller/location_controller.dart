@@ -8,6 +8,7 @@ import 'package:location/location.dart';
 
 class LocationDataController extends GetxController {
   RxBool isLoading = false.obs;
+  RxBool isTraking = false.obs;
   DatabaseHelper databaseHelper = DatabaseHelper();
   RxList<Map<String, dynamic>> parsedData = <Map<String, dynamic>>[].obs;
   RxString totalTravalTime = "".obs;
@@ -45,6 +46,7 @@ class LocationDataController extends GetxController {
   }
 
   Future<void> trackingLocation() async {
+    isTraking(true);
     Location location = Location();
     currentdateTime = DateTime.now();
     bool serviceEnabled;
@@ -112,6 +114,7 @@ class LocationDataController extends GetxController {
   }
 
   void stopTracking() {
+    isTraking(false);
     locationSubscription?.cancel(); // Stop location tracking
   }
 
