@@ -58,6 +58,7 @@ class DatabaseHelper {
   }
 
   Future<List<Map<String, dynamic>>?> getData(String query) async {
+    print("wuery--> $query");
     Database db = await database;
     try {
       return await db.rawQuery(

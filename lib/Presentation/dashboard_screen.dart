@@ -2,6 +2,7 @@ import 'package:distance_app/Controller/location_controller.dart';
 import 'package:distance_app/Presentation/data_table.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -54,27 +55,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             locationDataController.trackingLocation();
                           },
                         ),
-                  Contaner(
-                      title:
-                          "Total Distance : ${locationDataController.totalDistance.value}",
-                      color: Colors.amber),
+                  Obx(
+                    () => Contaner(
+                        title:
+                            "Total Distance : ${locationDataController.totalDistance.value}",
+                        color: Colors.amber),
+                  ),
                   const SizedBox(width: 10),
                   Contaner(
                     title: "Traked Location",
-                    iconData: Icons.rotate_90_degrees_cw_sharp,
+                    iconData: Icons.arrow_forward_ios,
                     color: Colors.green,
                     onTap: () async {
-                      await locationDataController.getData();
+                      await locationDataController.getData("");
                       Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (_) => const MyDataTable()));
                     },
                   ),
-                  Contaner(
-                      title:
-                          "Total Time : ${locationDataController.totalTravalTime.value}",
-                      color: Colors.amber),
+                  Obx(
+                    () => Contaner(
+                        title:
+                            "Total Time : ${locationDataController.trackingDuration.value}",
+                        color: Colors.amber),
+                  ),
+                  Divider(),
+                  Obx(() => Text(
+                      "Prev Position--> ${locationDataController.previousLocation.value}")),
+                  Obx(() => Text(
+                      "Current Position--> ${locationDataController.currentLocations.value}"))
                 ],
               ),
             ),

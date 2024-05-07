@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:distance_app/Controller/location_controller.dart';
 import 'package:distance_app/Widget/custom_textfield.dart';
 import 'package:distance_app/utils/data_source.dart';
+import 'package:distance_app/utils/timer_conversion.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -23,7 +25,7 @@ class _MyDataTableState extends State<MyDataTable> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      await locationDataController.getData();
+      await locationDataController.getData('');
       log("data--> ${locationDataController.parsedData}");
       employeeDataSource =
           EmployeeDataSource(tableData: locationDataController.parsedData);
@@ -38,7 +40,7 @@ class _MyDataTableState extends State<MyDataTable> {
         actions: [
           IconButton(
               onPressed: () {
-                locationDataController.getData();
+                locationDataController.getData('');
               },
               icon: const Icon(Icons.refresh))
         ],
@@ -48,22 +50,46 @@ class _MyDataTableState extends State<MyDataTable> {
           children: [
             Padding(
               padding: const EdgeInsets.all(10.0),
-              child: CustomTextField(
-                controller: locationDataController.searchController.value,
-                labelText: "Search",
-                suffixIcon: IconButton(
-                    onPressed: () async {
-                      locationDataController.searchController.value.clear();
-                      await locationDataController.getData();
-                    },
-                    icon: const Icon(Icons.close)),
-                onChanged: (p0) async {
-                  Future.delayed(const Duration(milliseconds: 500), () async {
-                    // do something with query
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Obx(
+                      () => CustomTextField(
+                        controller:
+                            locationDataController.searchController.value,
+                        labelText: "Search",
+                        suffixIcon: IconButton(
+                            onPressed: () async {
+                              if (locationDataController
+                                  .searchController.value.text.isNotEmpty) {
+                                await locationDataController.getData('');
+                                locationDataController.searchController.value
+                                    .clear();
+                              }
+                            },
+                            icon: Icon(locationDataController
+                                    .searchController.value.text.isNotEmpty
+                                ? Icons.close
+                                : Icons.search)),
+                        onChanged: (p0) async {
+                          Future.delayed(const Duration(milliseconds: 500),
+                              () async {
+                            // do something with query
 
-                    await locationDataController.getData();
-                  });
-                },
+                            await locationDataController.getData(
+                                locationDataController
+                                    .searchController.value.text);
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                      onPressed: () {
+                        showIOS_DatePicker(context);
+                      },
+                      icon: const Icon(Icons.filter))
+                ],
               ),
             ),
             locationDataController.isLoading.value
@@ -133,5 +159,62 @@ class _MyDataTableState extends State<MyDataTable> {
         ),
       ),
     );
+  }
+
+  void showIOS_DatePicker(ctx) {
+    showCupertinoModalPopup(
+        context: ctx,
+        builder: (_) => Container(
+              height: 300,
+              color: const Color.fromARGB(255, 255, 255, 255),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                            onPressed: () async {
+                              if (locationDataController.filterDate !=
+                                  DateTime.now()) {}
+                              locationDataController.filterDate.value = '';
+                              await locationDataController.getData(
+                                  locationDataController.filterDate.value);
+                              Navigator.pop(ctx);
+                            },
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.red),
+                            )),
+                        TextButton(
+                            onPressed: () async {
+                              await locationDataController.getData(
+                                  locationDataController.filterDate.value);
+                              locationDataController.filterDate.value = "";
+                              Navigator.pop(ctx);
+                            },
+                            child: const Text("apple",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.green)))
+                      ],
+                    ),
+                    SizedBox(
+                      height: 250,
+                      child: CupertinoDatePicker(
+                          initialDateTime: DateTime.now(),
+                          onDateTimeChanged: (val) {
+                            locationDataController.filterDate.value =
+                                convertTime(val);
+                          }),
+                    ),
+                  ],
+                ),
+              ),
+            ));
   }
 }
