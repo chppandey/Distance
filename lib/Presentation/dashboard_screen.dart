@@ -2,7 +2,6 @@ import 'package:distance_app/Controller/location_controller.dart';
 import 'package:distance_app/Presentation/data_table.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_state_manager/get_state_manager.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -12,6 +11,11 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final locationDataController = Get.put(LocationDataController());
+  @override
+  void initState() {
+    locationDataController.getTotalDistance();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +28,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         actions: [
           IconButton(
-              onPressed: () {}, icon: const Icon(Icons.verified_user_sharp))
+              onPressed: () {
+                locationDataController.getTotalDistance();
+              },
+              icon: const Icon(Icons.refresh_rounded))
         ],
       ),
       body: SafeArea(
@@ -80,11 +87,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             "Total Time : ${locationDataController.trackingDuration.value}",
                         color: Colors.amber),
                   ),
-                  Divider(),
-                  Obx(() => Text(
-                      "Prev Position--> ${locationDataController.previousLocation.value}")),
-                  Obx(() => Text(
-                      "Current Position--> ${locationDataController.currentLocations.value}"))
                 ],
               ),
             ),

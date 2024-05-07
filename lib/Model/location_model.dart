@@ -4,7 +4,7 @@ class LocationModel {
   String? latitude;
   String? longitude;
   String? accuracy;
-  String? distance;
+  double? distance;
 
   LocationModel(
       {this.timestamp,

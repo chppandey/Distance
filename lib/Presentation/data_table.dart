@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:time_range_picker/time_range_picker.dart';
 
 class MyDataTable extends StatefulWidget {
   const MyDataTable({super.key});
@@ -23,7 +24,6 @@ class _MyDataTableState extends State<MyDataTable> {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       await locationDataController.getData('');
       log("data--> ${locationDataController.parsedData}");
@@ -85,8 +85,27 @@ class _MyDataTableState extends State<MyDataTable> {
                     ),
                   ),
                   IconButton(
-                      onPressed: () {
-                        showIOS_DatePicker(context);
+                      onPressed: () async {
+                        // showIOS_DatePicker(context);
+                        TimeRange result = await showTimeRangePicker(
+                          context: context,
+                        );
+                        String startTimeH =
+                            result.startTime.hour.toString().padLeft(2, '0');
+                        String endTimeH =
+                            result.endTime.hour.toString().padLeft(2, '0');
+                        String startTimeM =
+                            result.startTime.minute.toString().padRight(2, '0');
+                        String endTimeM =
+                            result.endTime.minute.toString().padRight(2, '0');
+                        print(
+                            "result  + ${result.endTime.minute.toString().padLeft(2, '0')}");
+
+                        await locationDataController.filterData(
+                            stratTime: "$startTimeH:$startTimeM",
+                            endTime: "$endTimeH:$endTimeM");
+                        employeeDataSource = EmployeeDataSource(
+                            tableData: locationDataController.parsedData);
                       },
                       icon: const Icon(Icons.filter))
                 ],
@@ -209,7 +228,7 @@ class _MyDataTableState extends State<MyDataTable> {
                           initialDateTime: DateTime.now(),
                           onDateTimeChanged: (val) {
                             locationDataController.filterDate.value =
-                                convertTime(val);
+                                convertTime(val) ?? "";
                           }),
                     ),
                   ],

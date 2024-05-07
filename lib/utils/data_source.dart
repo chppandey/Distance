@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
@@ -8,7 +9,7 @@ class EmployeeDataSource extends DataGridSource {
     _employeeData = tableData
         .map<DataGridRow>((e) => DataGridRow(cells: [
               DataGridCell<String>(
-                  columnName: 'timestamp', value: e['timestamp']),
+                  columnName: 'timestamp', value: e['timestamp'] ?? ""),
               DataGridCell<String>(
                   columnName: 'latitude', value: e['latitude']),
               DataGridCell<String>(
@@ -16,7 +17,7 @@ class EmployeeDataSource extends DataGridSource {
               DataGridCell<String>(
                   columnName: 'accuracy', value: e['accuracy']),
               DataGridCell<String>(
-                  columnName: 'distance', value: e['distance']),
+                  columnName: 'distance', value: e['distance'].toString()),
             ]))
         .toList();
   }
@@ -28,7 +29,9 @@ class EmployeeDataSource extends DataGridSource {
 
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
-    print("row--> ${_employeeData.length}");
+    if (kDebugMode) {
+      print("row--> ${_employeeData.length}");
+    }
     return DataGridRowAdapter(
         cells: row.getCells().map<Widget>((e) {
       return Padding(

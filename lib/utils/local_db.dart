@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:distance_app/Model/location_model.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -42,7 +41,7 @@ class DatabaseHelper {
         latitude TEXT,
         longitude TEXT,
         accuracy TEXT,
-        distance TEXT
+        distance DOUBLE
       )
     ''');
   }
@@ -55,6 +54,21 @@ class DatabaseHelper {
     } catch (e) {
       log("vhj ${e.toString()}");
     }
+  }
+
+  Future<List<Map<String, dynamic>>?> filterData(
+      {required String startTime, required String endTime}) async {
+    Database db = await database;
+    String query = '''
+    SELECT * FROM traking_location
+    WHERE time(timestamp) BETWEEN time(?) AND time(?)
+  ''';
+    try {
+      return await db.rawQuery(query, [startTime, endTime]);
+    } catch (e) {
+      log(e.toString());
+    }
+    return null;
   }
 
   Future<List<Map<String, dynamic>>?> getData(String query) async {
@@ -80,6 +94,17 @@ class DatabaseHelper {
       log(e.toString());
     }
     return null;
+  }
+
+  Future<double> getTotalDistance() async {
+    Database db = await database;
+    List<Map<String, dynamic>> result = await db.rawQuery(
+      "SELECT SUM(distance) AS total FROM traking_location",
+    );
+    // Extract the total count from the result
+    double totalDistance = (result.first['total'] ?? 0.0);
+    print("dic---> $totalDistance");
+    return totalDistance;
   }
 }
 

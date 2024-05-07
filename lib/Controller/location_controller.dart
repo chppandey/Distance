@@ -3,9 +3,9 @@ import 'dart:math';
 import 'package:distance_app/Model/location_model.dart';
 import 'package:distance_app/utils/local_db.dart';
 import 'package:distance_app/utils/timer_conversion.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_rx/get_rx.dart';
 import 'package:location/location.dart';
 
 class LocationDataController extends GetxController {
@@ -16,7 +16,12 @@ class LocationDataController extends GetxController {
   // RxString totalTravalTime = "".obs;
   RxDouble totalDistance = 0.0.obs;
   Rx<DateTime> startTime = DateTime.now().obs;
-  RxString filterDate = "".obs;
+  RxString filterDate = ''.obs;
+  RxDouble startLatitude = 0.0.obs;
+  RxDouble startLongitude = 0.0.obs;
+  RxDouble endLatitude = 0.0.obs;
+  RxDouble endtLongitude = 0.0.obs;
+  RxDouble accuracy = 0.0.obs;
   Rx<Duration> trackingDuration = const Duration().obs;
   DateTime currentdateTime = DateTime.now();
   final timeStampController = TextEditingController().obs;
@@ -26,41 +31,50 @@ class LocationDataController extends GetxController {
   final distanceController = TextEditingController().obs;
   final searchController = TextEditingController().obs;
   StreamSubscription<LocationData>? locationSubscription;
-
   RxString previousLocation = "".obs;
   RxString currentLocations = "".obs;
 
-  /// insert data in table
-  // Future<void> inserData() async {
-  //   isLoading(true);
-  //   var inserData = LocationModel(
-  //       timestamp: timeStampController.value.text,
-  //       latitude: latitudeController.value.text,
-  //       longitude: longitudeController.value.text,
-  //       id: DateTime.now().microsecondsSinceEpoch,
-  //       accuracy: accuracyController.value.text,
-  //       distance: distanceController.value.text);
-  //   await databaseHelper.insertIntoTable(inserData);
-  //   isLoading(false);
-  // }
+  ///  getTotal disatnce
+  getTotalDistance() async {
+    isLoading(true);
+    totalDistance.value = await databaseHelper.getTotalDistance();
+    print("total distance--> ${totalDistance.value}");
+  }
+
+  ///  getTotal disatnce
+  filterData({required String stratTime, required String endTime}) async {
+    isLoading(true);
+    // parsedData.clear();
+    List<Map<String, dynamic>> data = await databaseHelper.filterData(
+            startTime: stratTime, endTime: endTime) ??
+        [];
+    parsedData.value = [];
+    parsedData.value = data;
+    refresh();
+    if (kDebugMode) {
+      print("total distance--> $parsedData");
+    }
+    isLoading(false);
+  }
 
   /// read data from table
   Future<void> getData(String query) async {
     isLoading(true);
     parsedData.value = await databaseHelper.getData(query) ?? [];
-    print("lidatData--> ${parsedData.toString()}");
+    if (kDebugMode) {
+      print("lidatData--> ${parsedData.toString()}");
+    }
     isLoading(false);
   }
 
   Future<void> trackingLocation() async {
-    isTraking(true);
     Location location = Location();
     startTime.value = DateTime.now();
 
+    ///
     bool serviceEnabled;
     PermissionStatus permissionGranted;
     LocationData startLocation;
-
     permissionGranted = await location.hasPermission();
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await location.requestPermission();
@@ -69,76 +83,80 @@ class LocationDataController extends GetxController {
       }
     }
     serviceEnabled = await location.serviceEnabled();
-    print("service--> $serviceEnabled");
+    if (kDebugMode) {
+      print("service--> $serviceEnabled");
+    }
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
-      print("service enable--");
+      if (kDebugMode) {
+        print("service enable--");
+      }
       if (!serviceEnabled) {
         return;
       }
     }
-    startLocation = await location.getLocation();
-    previousLocation.value =
-        "${startLocation.latitude} ${startLocation.longitude}";
-    print("stat--Location${startLocation.latitude} ${startLocation.longitude}");
-    DateTime currentTime = DateTime.now();
-    trackingDuration.value = currentTime.difference(startTime.value);
-    location.onLocationChanged.listen((LocationData currentLocation) async {
+
+    ///
+    ///
+    if (permissionGranted == PermissionStatus.granted) {
+      isTraking(true);
+      startLocation = await location.getLocation();
+      startLatitude.value = startLocation.latitude!;
+      startLongitude.value = startLocation.longitude!;
+      endLatitude.value = startLocation.latitude!;
+      endtLongitude.value = startLocation.longitude!;
+      previousLocation.value =
+          "${startLocation.latitude} ${startLocation.longitude}";
+      if (kDebugMode) {
+        print(
+            "stat--Location${startLocation.latitude} ${startLocation.longitude}");
+      }
       DateTime currentTime = DateTime.now();
       trackingDuration.value = currentTime.difference(startTime.value);
-      Timer.periodic(const Duration(seconds: 10), (timer) async {
-        print(
-          currentLocation.altitude,
-        );
-
-        print("duration--> ${trackingDuration.value}");
-        print("startLocation-- >${startLocation.latitude.toString()}");
-        print("Current Location-- >${currentLocation.latitude.toString()}");
-        currentLocations.value =
-            "${startLocation.latitude} ${startLocation.longitude}";
-        // Calculate distance from previous location
-        double distanceInMeters = calculateDistance(
-          startLocation.latitude!,
-          startLocation.longitude!,
-          currentLocation.latitude!,
-          currentLocation.longitude!,
-        );
-        // double distanceInMeters = calculateDistance(
-        //   startLocation.latitude!,
-        //   startLocation.longitude!,
-        //   34.0522,
-        //   -118.2437,
-        // );
-        totalDistance.value = distanceInMeters;
-        print("distance--> $distanceInMeters");
-        // Check if distance is greater than or equal to 3 meters
-        // if (distanceInMeters >= 3) {
-        // Save location data to database
-        print("time stamp--> ${currentLocation.time}");
-        var data = LocationModel(
-          latitude: currentLocation.latitude.toString(),
-          longitude: currentLocation.longitude.toString(),
-          timestamp: convertTime(currentTime!),
-          accuracy: currentLocation.accuracy.toString(),
-          distance: distanceInMeters.toString(),
-        );
-        await databaseHelper.insertIntoTable(data);
-        Get.snackbar("Success", "Data inserted",
-            backgroundColor: Colors.green, colorText: Colors.white);
-        startLocation = currentLocation;
-        // }
+      locationSubscription = location.onLocationChanged
+          .listen((LocationData currentLocation) async {
+        DateTime currentTime = DateTime.now();
+        if (kDebugMode) {
+          print("stop location--> ");
+        }
+        trackingDuration.value = currentTime.difference(startTime.value);
+        Timer.periodic(const Duration(seconds: 30), (timer) async {
+          endLatitude.value = currentLocation.latitude!;
+          endtLongitude.value = currentLocation.longitude!;
+          accuracy.value = currentLocation.accuracy!;
+          currentLocations.value =
+              "${startLocation.latitude} ${startLocation.longitude}";
+          // }
+        });
       });
-
-      // Use current location
-      update();
-    });
+    }
   }
 
-  void stopTracking() {
+  void stopTracking() async {
     isTraking(false);
     DateTime currentTime = DateTime.now();
     trackingDuration.value = currentTime.difference(startTime.value);
-    print("diff time--> ${trackingDuration.value}");
+    double distanceInMeters = calculateDistance(startLatitude.value,
+        startLongitude.value, endLatitude.value, endtLongitude.value);
+    if (kDebugMode) {
+      print("distance in meter--> $distanceInMeters");
+    }
+    if (kDebugMode) {
+      print("insertedDate---> $currentTime");
+    }
+    var data = LocationModel(
+      latitude: endLatitude.value.toString(),
+      longitude: endtLongitude.value.toString(),
+      timestamp: convertTime(currentTime),
+      accuracy: accuracy.value.toString(),
+      distance: distanceInMeters,
+    );
+
+    await databaseHelper.insertIntoTable(data);
+    Get.snackbar("Success", "Data inserted",
+        backgroundColor: Colors.green, colorText: Colors.white);
+    trackingDuration.value = const Duration(seconds: 0);
+    locationSubscription?.resume();
     locationSubscription?.cancel(); // Stop location tracking
   }
 
@@ -165,6 +183,4 @@ class LocationDataController extends GetxController {
   double degreesToRadians(double degrees) {
     return degrees * pi / 180;
   }
-
-
 }
