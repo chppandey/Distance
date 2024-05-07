@@ -16,7 +16,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     locationDataController.getTotalDistance();
     super.initState();
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,7 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   locationDataController.isTraking.value
-                      ? Contaner(
+                      ? contaner(
                           title: "Stop Traking",
                           iconData: Icons.close,
                           color: Colors.redAccent,
@@ -54,7 +53,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             locationDataController.stopTracking();
                           },
                         )
-                      : Contaner(
+                      : contaner(
                           title: "Start Traking",
                           iconData: Icons.my_location_outlined,
                           color: Colors.green,
@@ -63,14 +62,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           },
                         ),
                   Obx(
-                    () => Contaner(
+                    () => contaner(
                         iconData: Icons.social_distance,
                         title:
                             "Total Distance : ${locationDataController.totalDistance.value}",
                         color: Colors.amber),
                   ),
                   const SizedBox(width: 10),
-                  Contaner(
+                  contaner(
                     title: "Traked Location",
                     iconData: Icons.arrow_forward_ios,
                     color: Colors.green,
@@ -83,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     },
                   ),
                   Obx(
-                    () => Contaner(
+                    () => contaner(
                         iconData: Icons.timer,
                         title:
                             "Total Time : ${locationDataController.trackingDuration.value}",
@@ -98,7 +97,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget Contaner(
+  Widget contaner(
       {required String title,
       required Color color,
       IconData? iconData,

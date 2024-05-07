@@ -13,32 +13,24 @@ class LocationDataController extends GetxController {
   RxBool isTraking = false.obs;
   DatabaseHelper databaseHelper = DatabaseHelper();
   RxList<Map<String, dynamic>> parsedData = <Map<String, dynamic>>[].obs;
-  // RxString totalTravalTime = "".obs;
   RxDouble totalDistance = 0.0.obs;
   Rx<DateTime> startTime = DateTime.now().obs;
-  RxString filterDate = ''.obs;
   RxDouble startLatitude = 0.0.obs;
   RxDouble startLongitude = 0.0.obs;
   RxDouble endLatitude = 0.0.obs;
   RxDouble endtLongitude = 0.0.obs;
   RxDouble accuracy = 0.0.obs;
   Rx<Duration> trackingDuration = const Duration().obs;
-  DateTime currentdateTime = DateTime.now();
-  final timeStampController = TextEditingController().obs;
-  final latitudeController = TextEditingController().obs;
-  final longitudeController = TextEditingController().obs;
-  final accuracyController = TextEditingController().obs;
-  final distanceController = TextEditingController().obs;
   final searchController = TextEditingController().obs;
   StreamSubscription<LocationData>? locationSubscription;
-  RxString previousLocation = "".obs;
-  RxString currentLocations = "".obs;
 
   ///  getTotal disatnce
   getTotalDistance() async {
     isLoading(true);
     totalDistance.value = await databaseHelper.getTotalDistance();
-    print("total distance--> ${totalDistance.value}");
+    if (kDebugMode) {
+      print("total distance--> ${totalDistance.value}");
+    }
   }
 
   ///  filter on start and end date
@@ -95,18 +87,16 @@ class LocationDataController extends GetxController {
         return;
       }
     }
-
-    ///
-    ///
     if (permissionGranted == PermissionStatus.granted) {
       isTraking(true);
+      Get.snackbar("Success", "Traking Started",
+          backgroundColor: Colors.green, colorText: Colors.white);
       startLocation = await location.getLocation();
       startLatitude.value = startLocation.latitude!;
       startLongitude.value = startLocation.longitude!;
       endLatitude.value = startLocation.latitude!;
       endtLongitude.value = startLocation.longitude!;
-      previousLocation.value =
-          "${startLocation.latitude} ${startLocation.longitude}";
+
       if (kDebugMode) {
         print(
             "stat--Location${startLocation.latitude} ${startLocation.longitude}");
@@ -124,8 +114,7 @@ class LocationDataController extends GetxController {
           endLatitude.value = currentLocation.latitude!;
           endtLongitude.value = currentLocation.longitude!;
           accuracy.value = currentLocation.accuracy!;
-          currentLocations.value =
-              "${startLocation.latitude} ${startLocation.longitude}";
+
           // }
         });
       });
@@ -153,8 +142,8 @@ class LocationDataController extends GetxController {
     );
 
     await databaseHelper.insertIntoTable(data);
-    Get.snackbar("Success", "Data inserted",
-        backgroundColor: Colors.green, colorText: Colors.white);
+    Get.snackbar("Success", "Stoped Traking",
+        backgroundColor: Colors.red, colorText: Colors.white);
     trackingDuration.value = const Duration(seconds: 0);
     locationSubscription?.resume();
     locationSubscription?.cancel(); // Stop location tracking
@@ -164,19 +153,14 @@ class LocationDataController extends GetxController {
       double currentLatitude, double currentLongitude) {
     // Use the Haversine formula to calculate distance between two coordinates
     const double earthRadius = 6371000; // in meters
-
     double dLat = degreesToRadians(currentLatitude - startLatitude);
     double dLon = degreesToRadians(currentLongitude - startLongitude);
-
     double a = pow(sin(dLat / 2), 2) +
         cos(degreesToRadians(startLatitude)) *
             cos(degreesToRadians(currentLatitude)) *
             pow(sin(dLon / 2), 2);
-
     double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-
     double distance = earthRadius * c;
-
     return distance;
   }
 

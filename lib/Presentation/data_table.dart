@@ -3,8 +3,6 @@ import 'dart:developer';
 import 'package:distance_app/Controller/location_controller.dart';
 import 'package:distance_app/Widget/custom_textfield.dart';
 import 'package:distance_app/utils/data_source.dart';
-import 'package:distance_app/utils/timer_conversion.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -183,62 +181,5 @@ class _MyDataTableState extends State<MyDataTable> {
         ),
       ),
     );
-  }
-
-  void showIOS_DatePicker(ctx) {
-    showCupertinoModalPopup(
-        context: ctx,
-        builder: (_) => Container(
-              height: 300,
-              color: const Color.fromARGB(255, 255, 255, 255),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                            onPressed: () async {
-                              if (locationDataController.filterDate !=
-                                  DateTime.now()) {}
-                              locationDataController.filterDate.value = '';
-                              await locationDataController.getData(
-                                  locationDataController.filterDate.value);
-                              Navigator.pop(ctx);
-                            },
-                            child: const Text(
-                              "Cancel",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Colors.red),
-                            )),
-                        TextButton(
-                            onPressed: () async {
-                              await locationDataController.getData(
-                                  locationDataController.filterDate.value);
-                              locationDataController.filterDate.value = "";
-                              Navigator.pop(ctx);
-                            },
-                            child: const Text("apple",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Colors.green)))
-                      ],
-                    ),
-                    SizedBox(
-                      height: 250,
-                      child: CupertinoDatePicker(
-                          initialDateTime: DateTime.now(),
-                          onDateTimeChanged: (val) {
-                            locationDataController.filterDate.value =
-                                convertTime(val) ?? "";
-                          }),
-                    ),
-                  ],
-                ),
-              ),
-            ));
   }
 }
