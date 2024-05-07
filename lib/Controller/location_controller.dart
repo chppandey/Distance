@@ -41,7 +41,7 @@ class LocationDataController extends GetxController {
     print("total distance--> ${totalDistance.value}");
   }
 
-  ///  getTotal disatnce
+  ///  filter on start and end date
   filterData({required String stratTime, required String endTime}) async {
     isLoading(true);
     // parsedData.clear();

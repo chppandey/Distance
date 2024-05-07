@@ -90,24 +90,29 @@ class _MyDataTableState extends State<MyDataTable> {
                         TimeRange result = await showTimeRangePicker(
                           context: context,
                         );
-                        String startTimeH =
-                            result.startTime.hour.toString().padLeft(2, '0');
-                        String endTimeH =
-                            result.endTime.hour.toString().padLeft(2, '0');
-                        String startTimeM =
-                            result.startTime.minute.toString().padRight(2, '0');
-                        String endTimeM =
-                            result.endTime.minute.toString().padRight(2, '0');
-                        print(
-                            "result  + ${result.endTime.minute.toString().padLeft(2, '0')}");
+                        // String startTimeH =
+                        //     result.startTime.hour.toString().padLeft(2, '0');
+                        // String endTimeH =
+                        //     result.endTime.hour.toString().padLeft(2, '0');
+                        // String startTimeM =
+                        //     result.startTime.minute.toString().padRight(2, '0');
+                        // String endTimeM =
+                        //     result.endTime.minute.toString().padRight(2, '0');
+                        // print(
+                        //     "result  + ${result.endTime.minute.toString().padLeft(2, '0')}");
 
                         await locationDataController.filterData(
-                            stratTime: "$startTimeH:$startTimeM",
-                            endTime: "$endTimeH:$endTimeM");
+                            stratTime:
+                                "${result.startTime.hour.toString().padLeft(2, '0')}:${result.startTime.minute.toString().padRight(2, '0')}",
+                            endTime:
+                                "${result.endTime.hour.toString().padLeft(2, '0')}:${result.endTime.minute.toString().padRight(2, '0')}");
                         employeeDataSource = EmployeeDataSource(
                             tableData: locationDataController.parsedData);
                       },
-                      icon: const Icon(Icons.filter))
+                      icon: const Icon(
+                        Icons.filter_list_outlined,
+                        size: 30,
+                      ))
                 ],
               ),
             ),

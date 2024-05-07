@@ -56,7 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         )
                       : Contaner(
                           title: "Start Traking",
-                          iconData: Icons.start,
+                          iconData: Icons.my_location_outlined,
                           color: Colors.green,
                           onTap: () {
                             locationDataController.trackingLocation();
@@ -64,6 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                   Obx(
                     () => Contaner(
+                        iconData: Icons.social_distance,
                         title:
                             "Total Distance : ${locationDataController.totalDistance.value}",
                         color: Colors.amber),
@@ -83,6 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   Obx(
                     () => Contaner(
+                        iconData: Icons.timer,
                         title:
                             "Total Time : ${locationDataController.trackingDuration.value}",
                         color: Colors.amber),
